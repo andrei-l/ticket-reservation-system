@@ -1,0 +1,13 @@
+## Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
+*.iml
+## Directory-based project format:
+.idea/
+
+## Build directory
+target/
+out/
+sbt-dist/
+*.class
+
+## Log files
+*.log
