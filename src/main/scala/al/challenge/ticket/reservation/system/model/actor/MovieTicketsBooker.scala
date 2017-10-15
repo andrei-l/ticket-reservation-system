@@ -11,7 +11,7 @@ import scala.util.Success
 
 class MovieTicketsBooker(movieMaker: (ActorRefFactory, String) => ActorRef)
   extends Actor {
-  private final implicit val DefaultTimeout = Timeout(500, TimeUnit.MILLISECONDS)
+  private final implicit val DefaultTimeout = Timeout(250, TimeUnit.MILLISECONDS)
 
 
   import SupportedOperations._

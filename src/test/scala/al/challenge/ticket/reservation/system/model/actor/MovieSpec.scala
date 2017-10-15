@@ -43,7 +43,7 @@ class MovieSpec extends TestKit(ActorSystem("MovieSpec"))
     "get movie info after reserving a ticket" in {
       withRegisteredMovie { movie =>
         movie ! GetMovieInfo
-        expectMovieInformation(0, 1)
+        expectMovieInformation(1, 1)
       }
     }
 
@@ -57,7 +57,7 @@ class MovieSpec extends TestKit(ActorSystem("MovieSpec"))
     "get movie info after failure to reserve a ticket" in {
       withRegisteredMovie { movie =>
         movie ! GetMovieInfo
-        expectMovieInformation(0, 1)
+        expectMovieInformation(1, 1)
       }
     }
   }

@@ -22,9 +22,9 @@ class Movie extends Actor {
   private def movieRegistered: Receive = {
     case ReserveSeat =>
       state = state.map({
-        case _state@MovieState(_, availableSeats, reservedSeats) if availableSeats > 0 =>
+        case _state@MovieState(_, availableSeats, reservedSeats) if availableSeats > reservedSeats =>
           sender ! SeatReserved
-          _state.copy(availableSeats = availableSeats - 1, reservedSeats = reservedSeats + 1)
+          _state.copy(reservedSeats = reservedSeats + 1)
         case _state =>
           sender ! CannotReserveSeat("All tickets have been already reserved")
           _state

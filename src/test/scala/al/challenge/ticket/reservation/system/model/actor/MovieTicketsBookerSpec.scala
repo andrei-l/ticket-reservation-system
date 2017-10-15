@@ -31,10 +31,10 @@ class MovieTicketsBookerSpec extends TestKit(ActorSystem("BankSpec"))
     "fail to reserve a seat for movie which does not exist" in reserveSeatFails("2", "1")
 
     "load movie info" in {
-      assert(loadMovieInfo("1", "1", MovieState(MovieTitle, 0, 1)) === MovieInformation("1", "1", MovieTitle, 0, 1))
+      assert(loadMovieInfo("1", "1", MovieState(MovieTitle, 1, 1)) === MovieInformation("1", "1", MovieTitle, 1, 1))
     }
 
-    "fail to load movie info for movie which does not exist" in reserveSeatFails("2", "1")
+    "fail to load movie info for movie which does not exist" in loadMovieInfoFails("2", "1")
   }
 
   private def registerMovie(imdbId: String, screenId: String, availableSeats: Int): Unit = {
