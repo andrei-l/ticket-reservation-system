@@ -15,11 +15,12 @@ class MovieSpec extends TestKit(ActorSystem("MovieSpec"))
 
   import SupportedOperations.MovieSupportedOperations._
   import SupportedResponses._
+  import SupportedOperations.SupportedResponses._
 
   "A Movie Actor" should {
     "register movie" in {
       val movieActor = system.actorOf(Props[Movie])
-      movieActor ! RegisterMovie("tt0111161", "screen_123456", 1, "some new movie")
+      movieActor ! RegisterMovie("some new movie", 1)
       expectMsg(MovieRegistered)
       this.movieActor = Some(movieActor)
     }
@@ -27,7 +28,7 @@ class MovieSpec extends TestKit(ActorSystem("MovieSpec"))
 
     "get movie info before reserving a ticket" in {
       withRegisteredMovie { movie =>
-        movie ! GetInfo
+        movie ! GetMovieInfo
         expectMovieInformation(1, 0)
       }
     }
@@ -41,7 +42,7 @@ class MovieSpec extends TestKit(ActorSystem("MovieSpec"))
 
     "get movie info after reserving a ticket" in {
       withRegisteredMovie { movie =>
-        movie ! GetInfo
+        movie ! GetMovieInfo
         expectMovieInformation(0, 1)
       }
     }
@@ -55,7 +56,7 @@ class MovieSpec extends TestKit(ActorSystem("MovieSpec"))
 
     "get movie info after failure to reserve a ticket" in {
       withRegisteredMovie { movie =>
-        movie ! GetInfo
+        movie ! GetMovieInfo
         expectMovieInformation(0, 1)
       }
     }
@@ -69,7 +70,7 @@ class MovieSpec extends TestKit(ActorSystem("MovieSpec"))
 
   private def expectMovieInformation(expectedAvailableSeats: Int, expectedReservedSeats: Int) = {
     expectMsg(MovieInformation(
-      MovieState("tt0111161", "screen_123456", "some new movie", expectedAvailableSeats, expectedReservedSeats)
+      MovieState("some new movie", expectedAvailableSeats, expectedReservedSeats)
     ))
   }
 
