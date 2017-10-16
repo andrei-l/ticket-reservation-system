@@ -45,6 +45,7 @@ private[http] class MovieTicketReservationSystemHttpRoutes(movieTicketsBooker: A
             entity(as[ReserveSeat]) { req =>
               complete(movieTicketsBooker ? ReserveSeat(req.imdbId, req.screenId) map {
                 case SeatReserved => OK -> None.asJson
+                case MovieDoesNotExist => BadRequest -> GeneralErrorResponse("Movie does not exist").asJson
                 case CannotReserveSeat(reason) => BadRequest -> GeneralErrorResponse(reason).asJson
               })
             }

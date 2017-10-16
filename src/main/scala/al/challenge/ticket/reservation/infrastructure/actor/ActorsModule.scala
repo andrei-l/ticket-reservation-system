@@ -20,7 +20,7 @@ trait ActorsModule {
     Props(classOf[MovieTicketsBooker], (f: ActorRefFactory, movieInternalId: String) => f.actorOf(Props[Movie], movieInternalId))
   )
 
-  def afterWarmUp()(op: => Unit): Unit = (movieTicketsBooker ? WarmUp)(10 seconds).onComplete {
+  def afterWarmUp(op: => Unit): Unit = (movieTicketsBooker ? WarmUp)(1 minute).onComplete {
     case Success(_) => op
     case Failure(ex) => system.log.error(s"failed to start actors module: ${ex.getMessage}", ex)
   }

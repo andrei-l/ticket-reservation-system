@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{HttpEntity, MediaTypes}
 import scala.concurrent.duration._
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import al.challenge.ticket.reservation.infrastructure.actor.ActorsModule
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpec}
 import akka.testkit._
 
 import scala.language.{implicitConversions, postfixOps}
@@ -15,30 +15,14 @@ class MovieTicketReservationSystemHttpRoutesIntegrationSpec extends WordSpec
   with Matchers
   with ScalatestRouteTest
   with HttpRoutesModule
-  with ActorsModule {
+  with ActorsModule
+  with BeforeAndAfterAll {
 
 
   private implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
 
-  private final val CreateMovieRequestEntity = HttpEntity(MediaTypes.`application/json`,
-    s"""
-             {
-                 "imdbId": "tt0111161",
-                 "screenId": "screen_123456",
-                 "movieTitle": "The Shawshank Redemption",
-                 "availableSeats": 1
-             }
-         """
-  )
+  override protected def beforeAll(): Unit = afterWarmUp(println("Test Started"))
 
-  private final val ReserveSeatRequestEntity = HttpEntity(MediaTypes.`application/json`,
-    """
-           {
-               "imdbId": "tt0111161",
-               "screenId": "screen_123456"
-           }
-       """
-  )
 
   "Application" should {
     "register movie via PUT /movies/register" in {
@@ -67,7 +51,14 @@ class MovieTicketReservationSystemHttpRoutesIntegrationSpec extends WordSpec
       }
     }
 
-    "reserve a seat for a movie via GET /movies/get-movie-info?imdbId=x&screenId=y" in {
+    "fail to reserve a seat for a movie as movie does not exist via POST /movies/reserve-seat" in {
+      Post("/movies/reserve-seat", ReserveSeatForAnotherMovieRequestEntity) ~> httpRoute.movieTicketSystemRoute ~> check {
+        responseAs[String] shouldBe """{"msg":"Movie does not exist"}"""
+        status shouldBe BadRequest
+      }
+    }
+
+    "get movie info via GET /movies/get-movie-info?imdbId=x&screenId=y" in {
       Get(s"/movies/get-movie-info?imdbId=tt0111161&screenId=screen_123456") ~> httpRoute.movieTicketSystemRoute ~> check {
         responseAs[String].noSpaces shouldBe
           """
@@ -82,7 +73,15 @@ class MovieTicketReservationSystemHttpRoutesIntegrationSpec extends WordSpec
         status shouldBe OK
       }
     }
+
+    "fail to get movie info as movie does not existvia GET /movies/get-movie-info?imdbId=x&screenId=y" in {
+      Get(s"/movies/get-movie-info?imdbId=tt011&screenId=screen_123") ~> httpRoute.movieTicketSystemRoute ~> check {
+        responseAs[String] shouldBe """{"msg":"Movie does not exist"}"""
+        status shouldBe BadRequest
+      }
+    }
   }
+
 
   private implicit def stringToRichString(s: String): RichString = RichString(s)
 

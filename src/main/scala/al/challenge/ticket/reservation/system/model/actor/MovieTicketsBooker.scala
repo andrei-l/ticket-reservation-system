@@ -1,12 +1,13 @@
 package al.challenge.ticket.reservation.system.model.actor
 
-import akka.actor.{ActorRef, ActorRefFactory}
+import akka.actor.{ActorLogging, ActorRef, ActorRefFactory}
 import akka.pattern.{ask, pipe}
-import akka.persistence.{PersistentActor, SnapshotOffer}
+import akka.persistence.PersistentActor
 import akka.util.Timeout
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.language.postfixOps
 import scala.util.Success
 
 private[actor] object MovieTicketsBooker {
@@ -16,10 +17,9 @@ private[actor] object MovieTicketsBooker {
   case class MovieTicketsBookerState(movies: Map[String, ActorRef])
 }
 
-class MovieTicketsBooker(movieMaker: (ActorRefFactory, String) => ActorRef)
-  extends PersistentActor {
+class MovieTicketsBooker(movieMaker: (ActorRefFactory, String) => ActorRef) extends PersistentActor
+  with ActorLogging {
   private final implicit val DefaultTimeout: Timeout = 250 millis
-  private final val SnapShotInterval = 100
 
 
   import MovieTicketsBooker._
@@ -35,8 +35,10 @@ class MovieTicketsBooker(movieMaker: (ActorRefFactory, String) => ActorRef)
   private var state = MovieTicketsBookerState(Map())
 
   override def receiveRecover: Receive = {
-    case evt: Event => updateState(evt)
-    case SnapshotOffer(_, snapshot: MovieTicketsBookerState) => state = snapshot
+    case evt: Event =>
+      log.debug(s"Recovered $evt")
+      updateState(evt)
+    case _ =>
   }
 
   override def receiveCommand: Receive = {
@@ -51,7 +53,7 @@ class MovieTicketsBooker(movieMaker: (ActorRefFactory, String) => ActorRef)
     withMovie(imdbId, screenId)((_, _) => sender ! MovieAlreadyExist) { movieInternalId =>
       val replyTo = sender
       persist(RegisterMovieEvent(movieInternalId, movieTitle, availableSeats)) {
-        event => updateState(event) pipeTo replyTo; saveSnapshotIfRequired()
+        event => updateState(event) pipeTo replyTo
       }
     }
 
@@ -59,7 +61,7 @@ class MovieTicketsBooker(movieMaker: (ActorRefFactory, String) => ActorRef)
     withMovie(imdbId, screenId) { (_, movieInternalId) =>
       val replyTo = sender
       persist(ReserveSeatEvent(movieInternalId)) {
-        event => updateState(event) pipeTo replyTo; saveSnapshotIfRequired()
+        event => updateState(event) pipeTo replyTo
       }
     }()
 
@@ -72,9 +74,6 @@ class MovieTicketsBooker(movieMaker: (ActorRefFactory, String) => ActorRef)
 
     case ReserveSeatEvent(movieInternalId) => state.movies(movieInternalId) ? MovieSupportedOperations.ReserveSeat
   }
-
-  private def saveSnapshotIfRequired(): Unit =
-    if (lastSequenceNr % SnapShotInterval == 0 && lastSequenceNr != 0) saveSnapshot(state)
 
   private def loadMovieInfo(imdbId: String, screenId: String): Unit = {
     val replyTo = sender()

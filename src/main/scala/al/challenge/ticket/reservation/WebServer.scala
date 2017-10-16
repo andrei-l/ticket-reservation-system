@@ -31,7 +31,7 @@ object WebServer extends App
     host = Some("127.0.0.1")
   )
 
-  afterWarmUp() {
+  afterWarmUp {
     Http().bindAndHandle(httpRoute.movieTicketSystemRoute, config.loadString("http.host"), config.loadInt("http.port"))
     system.log.info("Application started")
   }
