@@ -2,9 +2,9 @@
 Application which provide REST API for registering movies, reserving seats and loading this information back
 
 ## App details
-API is built with Akka HTTP
-Domain logic is built with Akka Actors framework. Persistence is supported with akka-persistence and embedded Cassandra DB
-Classes are linked together with MacWire DI framework.
+ - API is built with Akka HTTP.
+ - Domain logic is built with Akka Actors framework. Persistence is supported with akka-persistence and embedded Cassandra DB.
+ - Classes are linked together with MacWire DI framework.
 
 ### API
 
