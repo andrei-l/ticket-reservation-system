@@ -10,6 +10,5 @@ trait HttpRoutesModule {
   val movieTicketsBooker: ActorRef
   implicit def executor: ExecutionContext
 
-  val httpRoute: MovieTicketReservationSystemHttpRoutes = wire[MovieTicketReservationSystemHttpRoutes]
-
+  lazy val httpRoute: MovieTicketReservationSystemHttpRoutes = wire[MovieTicketReservationSystemHttpRoutes]
 }

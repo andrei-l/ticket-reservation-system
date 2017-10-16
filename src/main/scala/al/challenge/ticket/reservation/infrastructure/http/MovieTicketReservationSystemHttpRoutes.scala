@@ -1,7 +1,5 @@
 package al.challenge.ticket.reservation.infrastructure.http
 
-import java.util.concurrent.TimeUnit
-
 import akka.actor.ActorRef
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
@@ -14,13 +12,15 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 
 private[http] class MovieTicketReservationSystemHttpRoutes(movieTicketsBooker: ActorRef)
                                                           (implicit executionContext: ExecutionContext)
   extends FailFastCirceSupport {
 
-  private final implicit val DefaultTimeout: Timeout = Timeout(500, TimeUnit.MILLISECONDS)
+  private final implicit val DefaultTimeout: Timeout = 750 millis
 
   import al.challenge.ticket.reservation.system.model.actor.SupportedOperations._
   import MovieTicketsBookerSupportedOperations.SupportedResponses._
@@ -28,7 +28,7 @@ private[http] class MovieTicketReservationSystemHttpRoutes(movieTicketsBooker: A
   import MovieTicketsBookerSupportedOperations._
 
 
-  val movieTicketSystemRoute: Route =
+  lazy val movieTicketSystemRoute: Route =
     pathPrefix("movies") {
       path("register") {
         put {

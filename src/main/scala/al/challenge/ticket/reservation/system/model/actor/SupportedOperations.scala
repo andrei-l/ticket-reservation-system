@@ -20,6 +20,7 @@ object SupportedOperations {
   }
 
   object MovieTicketsBookerSupportedOperations {
+    case object WarmUp
     case class RegisterMovie(imdbId: String, screenId: String, availableSeats: Int, movieTitle: String)
     case class GetMovieInfo(imdbId: String, screenId: String)
     case class ReserveSeat(imdbId: String, screenId: String)

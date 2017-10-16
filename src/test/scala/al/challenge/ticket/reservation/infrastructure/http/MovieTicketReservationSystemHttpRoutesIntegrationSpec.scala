@@ -2,17 +2,23 @@ package al.challenge.ticket.reservation.infrastructure.http
 
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes}
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+
+import scala.concurrent.duration._
+import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import al.challenge.ticket.reservation.infrastructure.actor.ActorsModule
 import org.scalatest.{Matchers, WordSpec}
+import akka.testkit._
 
-import scala.language.implicitConversions
+import scala.language.{implicitConversions, postfixOps}
 
 class MovieTicketReservationSystemHttpRoutesIntegrationSpec extends WordSpec
   with Matchers
   with ScalatestRouteTest
   with HttpRoutesModule
   with ActorsModule {
+
+
+  private implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
 
   private final val CreateMovieRequestEntity = HttpEntity(MediaTypes.`application/json`,
     s"""
