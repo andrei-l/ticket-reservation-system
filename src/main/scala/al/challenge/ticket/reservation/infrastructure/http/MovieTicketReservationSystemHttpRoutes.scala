@@ -29,15 +29,13 @@ private[http] class MovieTicketReservationSystemHttpRoutes(movieTicketsBooker: A
 
 
   lazy val movieTicketSystemRoute: Route =
-    pathPrefix("movies") {
-      path("register") {
-        put {
-          entity(as[RegisterMovieRequest]) { req =>
-            complete(movieTicketsBooker ? RegisterMovie(req.imdbId, req.screenId, req.availableSeats, req.movieTitle) map {
-              case MovieRegistered => Created -> None.asJson
-              case MovieAlreadyExist => BadRequest -> GeneralErrorResponse("Movie already exist").asJson
-            })
-          }
+    pathPrefix("movie") {
+      put {
+        entity(as[RegisterMovieRequest]) { req =>
+          complete(movieTicketsBooker ? RegisterMovie(req.imdbId, req.screenId, req.availableSeats, req.movieTitle) map {
+            case MovieRegistered => Created -> None.asJson
+            case MovieAlreadyExist => BadRequest -> GeneralErrorResponse("Movie already exist").asJson
+          })
         }
       } ~
         path("reserve-seat") {
@@ -51,15 +49,13 @@ private[http] class MovieTicketReservationSystemHttpRoutes(movieTicketsBooker: A
             }
           }
         } ~
-        path("get-movie-info") {
-          get {
-            parameters('imdbId.as[String], 'screenId.as[String]) { (imdbId, screenId) =>
-              complete(movieTicketsBooker ? GetMovieInfo(imdbId, screenId) map {
-                case MovieInformation(_imdbId, _screenId, movieTitle, availableSeats, reservedSeats) =>
-                  OK -> MovieInformationResponse(_imdbId, _screenId, movieTitle, availableSeats, reservedSeats).asJson
-                case MovieDoesNotExist => BadRequest -> GeneralErrorResponse("Movie does not exist").asJson
-              })
-            }
+        get {
+          parameters('imdbId.as[String], 'screenId.as[String]) { (imdbId, screenId) =>
+            complete(movieTicketsBooker ? GetMovieInfo(imdbId, screenId) map {
+              case MovieInformation(_imdbId, _screenId, movieTitle, availableSeats, reservedSeats) =>
+                OK -> MovieInformationResponse(_imdbId, _screenId, movieTitle, availableSeats, reservedSeats).asJson
+              case MovieDoesNotExist => BadRequest -> GeneralErrorResponse("Movie does not exist").asJson
+            })
           }
         }
     }
