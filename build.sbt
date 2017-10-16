@@ -1,3 +1,4 @@
+
 val AkkaVersion = "2.5.6"
 val AkkaHttpVersion = "10.0.10"
 val AkkaHttpCirceVersion = "1.18.0"
@@ -41,4 +42,7 @@ libraryDependencies ++= Seq(
   akkaHttpTestKit,
   akkaPersistenceInMemory
 )
+
+oneJarSettings
+
 
