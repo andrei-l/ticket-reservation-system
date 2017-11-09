@@ -24,22 +24,31 @@ class MovieTicketsBookerSpec extends TestKit(ActorSystem("BankSpec"))
   "A Movie Tickets Booker Actor" should {
     "register movie" in registerMovie("1", "1", 1)
 
-    "fail to register movie which has already been registered" in registerMovieFails("1", "1", 1)
-
-    "reserve seat for a movie" in reserveSeat("1", "1")
-
-    "fail to reserve a seat for movie which does not exist" in reserveSeatFails("2", "1")
-
-    "load movie info" in {
-      assert(loadMovieInfo("1", "1", MovieState(MovieTitle, 1, 1)) === MovieInformation("1", "1", MovieTitle, 1, 1))
+    "fail to register movie which has already been registered" in {
+      registerMovie("2", "2", 1)
+      registerMovieFails("2", "2", 1)
     }
 
-    "fail to load movie info for movie which does not exist" in loadMovieInfoFails("2", "1")
+    "reserve seat for a movie" in {
+      registerMovie("3", "3", 1)
+      reserveSeat("3", "3")
+    }
+
+    "fail to reserve a seat for movie which does not exist" in {
+      reserveSeatFails("4", "4")
+    }
+
+    "load movie info" in {
+      registerMovie("5", "5", 1)
+      assert(loadMovieInfo("5", "5", MovieState(MovieTitle, 1, 1)) === MovieInformation("5", "5", MovieTitle, 1, 1))
+    }
+
+    "fail to load movie info for movie which does not exist" in loadMovieInfoFails("6", "6")
   }
 
   private def registerMovie(imdbId: String, screenId: String, availableSeats: Int): Unit = {
     movieTicketsBookerActor ! RegisterMovie(imdbId, screenId, availableSeats, MovieTitle)
-    movieProb.expectMsg(MovieSupportedOperations.RegisterMovie(MovieTitle, 1))
+    movieProb.expectMsg(MovieSupportedOperations.RegisterMovie(MovieTitle, availableSeats))
     movieProb.reply(MovieRegistered)
 
     expectMsg(MovieRegistered)
