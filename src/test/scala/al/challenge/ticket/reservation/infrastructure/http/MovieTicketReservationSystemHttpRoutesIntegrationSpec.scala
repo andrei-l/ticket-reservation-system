@@ -19,9 +19,6 @@ class MovieTicketReservationSystemHttpRoutesIntegrationSpec extends WordSpec
 
   private implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
 
-  override protected def beforeAll(): Unit = afterWarmUp(println("Test Started"))
-
-
   private final val MovieRegistrationPath = "/movie"
   private final val ReserveSeatPath = "/movie/reserve-seat"
   private final val GetMoviePathFormat = "/movie?imdbId=%s&screenId=%s"

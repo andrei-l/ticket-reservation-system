@@ -1,34 +1,63 @@
 package al.challenge.ticket.reservation.system.model.actor
 
-import akka.actor.Actor
+import akka.persistence.{PersistentActor, SnapshotOffer}
+import al.challenge.ticket.reservation.system.model.actor.Movie.{MovieEvent, MovieRegisteredEvent, SeatReservedEvent}
+
 
 case class MovieState(movieTitle: String, availableSeats: Int, reservedSeats: Int = 0)
 
-class Movie extends Actor {
+private[actor] object Movie {
+  private trait MovieEvent
+  private case class MovieRegisteredEvent(movieTitle: String, availableSeats: Int) extends MovieEvent
+  private case object SeatReservedEvent extends MovieEvent
+}
 
+class Movie extends PersistentActor {
   import SupportedOperations.MovieSupportedOperations._
-  import SupportedResponses._
   import SupportedOperations.SupportedResponses._
+  import SupportedResponses._
 
   private var state: Option[MovieState] = None
 
-  override def receive: Receive = {
-    case RegisterMovie(movieTitle, availableSeats) =>
+  private def updateState: MovieEvent => Unit = {
+    case MovieRegisteredEvent(movieTitle, availableSeats) =>
       state = Some(MovieState(movieTitle, availableSeats))
       context.become(movieRegistered)
-      sender ! MovieRegistered
+    case SeatReservedEvent => state = state.map(_state => _state.copy(reservedSeats = _state.reservedSeats + 1))
   }
+
+  override def persistenceId = self.path.name
+
+  override def receiveCommand: Receive = {
+    case RegisterMovie(movieTitle, availableSeats) =>
+      val replyTo = sender()
+      persist(MovieRegisteredEvent(movieTitle, availableSeats)) { event =>
+        updateState(event)
+        context.system.eventStream.publish(event)
+        replyTo ! MovieRegistered
+      }
+  }
+
+  private val snapShotInterval = 10
 
   private def movieRegistered: Receive = {
     case ReserveSeat =>
-      state = state.map({
-        case _state@MovieState(_, availableSeats, reservedSeats) if availableSeats > reservedSeats =>
-          sender ! SeatReserved
-          _state.copy(reservedSeats = reservedSeats + 1)
-        case _state =>
+      state.foreach({
+        case MovieState(_, availableSeats, reservedSeats) if availableSeats > reservedSeats =>
+          val replyTo = sender()
+          persist(SeatReservedEvent) { event =>
+            replyTo ! SeatReserved
+            updateState(event)
+            if (lastSequenceNr % snapShotInterval == 0 && lastSequenceNr != 0) saveSnapshot(state)
+          }
+        case _ =>
           sender ! CannotReserveSeat("All tickets have been already reserved")
-          _state
       })
     case GetMovieInfo => state.foreach(sender ! MovieInformation(_))
+  }
+
+  override def receiveRecover = {
+    case evt: MovieEvent => updateState(evt)
+    case SnapshotOffer(_, snapshot: Option[MovieState]) => state = snapshot
   }
 }

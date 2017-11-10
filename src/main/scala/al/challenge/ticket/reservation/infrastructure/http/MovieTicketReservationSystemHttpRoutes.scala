@@ -20,7 +20,7 @@ private[http] class MovieTicketReservationSystemHttpRoutes(movieTicketsBooker: A
                                                           (implicit executionContext: ExecutionContext)
   extends FailFastCirceSupport {
 
-  private final implicit val DefaultTimeout: Timeout = 750 millis
+  private final implicit val DefaultTimeout: Timeout = 1 minute
 
   import al.challenge.ticket.reservation.system.model.actor.SupportedOperations._
   import MovieTicketsBookerSupportedOperations.SupportedResponses._

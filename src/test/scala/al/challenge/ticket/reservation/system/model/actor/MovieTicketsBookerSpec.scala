@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, ActorRefFactory, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit, TestProbe}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-class MovieTicketsBookerSpec extends TestKit(ActorSystem("BankSpec"))
+class MovieTicketsBookerSpec extends TestKit(ActorSystem("MovieTicketsBookerSpec"))
   with ImplicitSender
   with WordSpecLike
   with Matchers
@@ -13,7 +13,8 @@ class MovieTicketsBookerSpec extends TestKit(ActorSystem("BankSpec"))
   private final val MovieTitle = "title"
 
   private val movieProb = TestProbe()
-  private val movieMaker: (ActorRefFactory, String) => ActorRef = (_, _) => movieProb.ref
+  private val movieMaker: (ActorRefFactory, String) => ActorRef =
+    (context, movieId) => context.actorOf(Props(classOf[TestProbeWrappingForwarder], movieProb.ref), movieId)
   private val movieTicketsBookerActor = system.actorOf(Props(classOf[MovieTicketsBooker], movieMaker))
 
   import SupportedOperations._
@@ -92,5 +93,4 @@ class MovieTicketsBookerSpec extends TestKit(ActorSystem("BankSpec"))
   override def afterAll {
     TestKit.shutdownActorSystem(system)
   }
-
 }
