@@ -58,6 +58,8 @@ class Movie extends PersistentActor {
 
   override def receiveRecover = {
     case evt: MovieEvent => updateState(evt)
-    case SnapshotOffer(_, snapshot: Option[MovieState]) => state = snapshot
+    case SnapshotOffer(_, snapshot: Option[MovieState]) =>
+      context.become(movieRegistered)
+      state = snapshot
   }
 }
